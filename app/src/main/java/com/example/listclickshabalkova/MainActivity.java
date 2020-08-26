@@ -21,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences myNoteSharedPref;
     private static String NOTE_TEXT = "note_text";
+    private static String HEADER = "header";
+    private static String COUNT = "count";
     private List<Map<String, String>> values;
     private ListView list;
 
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initPrefs();
         list = findViewById(R.id.listView);
         final SwipeRefreshLayout swipe = findViewById(R.id.swipe);
         values = prepareContent();
@@ -35,15 +38,16 @@ public class MainActivity extends AppCompatActivity {
         int[] to = new int[]{R.id.textViewHeader, R.id.textViewText};
         final SimpleAdapter adapter = new SimpleAdapter(this,values, R.layout.list_item, from, to);
         list.setAdapter(adapter);
-        initViews();
+
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TextView headerView = findViewById(R.id.textViewHeader);
-                TextView countView = findViewById(R.id.textViewText);
-                headerView.setText("");
-                countView.setText("");
+//                TextView headerView = findViewById(R.id.textViewHeader);
+//                TextView countView = findViewById(R.id.textViewText);
+//                headerView.setText("");
+//                countView.setText("");
+                values.remove(i);
                 adapter.notifyDataSetChanged();
             }
         });
@@ -51,7 +55,9 @@ public class MainActivity extends AppCompatActivity {
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                values = prepareContent();
+                values.clear();
+                values.addAll(prepareContent());
+   //             values = prepareContent();
 //                SimpleAdapter adapter = new SimpleAdapter(this,values, R.layout.list_item, from, to);
 //                list.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
@@ -65,19 +71,19 @@ public class MainActivity extends AppCompatActivity {
 
     @NonNull
     private List<Map<String, String>> prepareContent() {
-        String[] largeText = myNoteSharedPref.getString("NOTE_TEXT", "").split("\n\n");
+        String[] largeText = myNoteSharedPref.getString(NOTE_TEXT, "").split("\n\n");
         List<Map<String, String>> content = new ArrayList<>();
 
         for (int i=0; i < largeText.length; i++){
             Map<String,String> firstRowMap = new HashMap<>();
-            firstRowMap.put("header",largeText[i]);
-            firstRowMap.put("count", String.valueOf(largeText[i].length()));
+            firstRowMap.put(HEADER,largeText[i]);
+            firstRowMap.put(COUNT, String.valueOf(largeText[i].length()));
             content.add(firstRowMap);
         }
         return  content;
     }
 
-    private void initViews() {
+    private void initPrefs() {
         myNoteSharedPref = getSharedPreferences("MyNote", MODE_PRIVATE);
         SharedPreferences.Editor myEditor = myNoteSharedPref.edit();
         String largeText = getString(R.string.large_text);
